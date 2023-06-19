@@ -1,5 +1,6 @@
 package com.jairorr.samplesocialmediajc.ui.screen.registration
 
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -28,15 +29,19 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.google.firebase.database.FirebaseDatabase
+import com.jairorr.samplesocialmediajc.data.User
 
 @Preview(showBackground = true)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterUserScreen() {
     val context = LocalContext.current
-    Column(modifier = Modifier
-        .padding(14.dp)
-        .fillMaxSize(), verticalArrangement = Arrangement.spacedBy(24.dp)) {
+    Column(
+        modifier = Modifier
+            .padding(14.dp)
+            .fillMaxSize(), verticalArrangement = Arrangement.spacedBy(24.dp)
+    ) {
         var username by rememberSaveable { mutableStateOf("") }
         var password by rememberSaveable { mutableStateOf("") }
         var passwordHidden by rememberSaveable { mutableStateOf(true) }
@@ -53,18 +58,33 @@ fun RegisterUserScreen() {
             onValueChange = { password = it },
             label = { Text(text = "New password") },
             singleLine = true,
-            visualTransformation = if(passwordHidden) PasswordVisualTransformation() else VisualTransformation.None,
+            visualTransformation = if (passwordHidden) PasswordVisualTransformation() else VisualTransformation.None,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             trailingIcon = {
-                IconButton(onClick = { passwordHidden = !passwordHidden}) {
-                    val hiddenStateIcon = if(passwordHidden) Icons.Filled.CheckCircle else Icons.Filled.AddCircle
+                IconButton(onClick = { passwordHidden = !passwordHidden }) {
+                    val hiddenStateIcon =
+                        if (passwordHidden) Icons.Filled.CheckCircle else Icons.Filled.AddCircle
                     val description = if (passwordHidden) "Show password" else "Hide  password"
                     Icon(imageVector = hiddenStateIcon, contentDescription = description)
                 }
             }
         )
-        Button(modifier = Modifier.fillMaxWidth(),onClick = { Toast.makeText(context,"Register pressed",Toast.LENGTH_SHORT).show()}) {
+        Button(modifier = Modifier.fillMaxWidth(), onClick = {
+            registerUser(username, password) {
+                password = ""
+                username = ""
+                Toast.makeText(context, "Register pressed", Toast.LENGTH_SHORT).show()
+            }
+        }) {
             Text(text = "Register user")
         }
+    }
+}
+
+fun registerUser(username: String, password: String, clearOnSuccess: () -> Unit) {
+    val database = FirebaseDatabase.getInstance().getReference("Users")
+    val user = User(username, password)
+    database.child(username).setValue(user).addOnSuccessListener {
+        clearOnSuccess()
     }
 }
