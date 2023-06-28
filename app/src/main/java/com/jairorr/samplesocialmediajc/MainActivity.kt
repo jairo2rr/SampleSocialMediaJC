@@ -28,6 +28,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -48,23 +49,26 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.jairorr.samplesocialmediajc.data.MemberUser
+import com.jairorr.samplesocialmediajc.ui.MyScreen
+import com.jairorr.samplesocialmediajc.ui.screen.navigation.MyNavigation
 import com.jairorr.samplesocialmediajc.ui.theme.SampleSocialMediaJCTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+
             SampleSocialMediaJCTheme {
                 // A surface container using the 'background' color from the theme
-
-
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val viewModel: BodyViewModel by viewModels()
-                    BodyContainer(viewModel = viewModel)
+//                    BodyContainer(viewModel = viewModel)
+                    MyNavigation()
                 }
             }
         }
@@ -74,9 +78,9 @@ class MainActivity : ComponentActivity() {
 //@Preview(showBackground = true)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BodyContainer(modifier: Modifier = Modifier, viewModel: BodyViewModel) {
+fun BodyContainer(modifier: Modifier = Modifier, viewModel: BodyViewModel?,navController:NavController) {
     Scaffold(
-        content = { BodyScreen(modifier = modifier.padding(it), viewModel) },
+        content = { BodyScreen(modifier = modifier.padding(it), viewModel = viewModel, navController = navController) },
         topBar = { MyAppBar() })
 }
 
@@ -106,7 +110,7 @@ fun MyAppBar() {
 
 
 @Composable
-fun BodyScreen(modifier: Modifier = Modifier, viewModel: BodyViewModel) {
+fun BodyScreen(modifier: Modifier = Modifier, viewModel: BodyViewModel?, navController:NavController) {
     val context = LocalContext.current
     Column(modifier = modifier.padding(24.dp)) {
         Row(
@@ -118,7 +122,7 @@ fun BodyScreen(modifier: Modifier = Modifier, viewModel: BodyViewModel) {
                 modifier = Modifier
                     .clip(CircleShape)
                     .clickable {
-                        viewModel.refreshBoth()
+                        viewModel?.refreshBoth()
                         Toast
                             .makeText(context, "Refresh data", Toast.LENGTH_SHORT)
                             .show()
@@ -142,7 +146,7 @@ fun BodyScreen(modifier: Modifier = Modifier, viewModel: BodyViewModel) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                itemsIndexed(viewModel.listHistories.value) { index, it ->
+                itemsIndexed(viewModel?.listHistories?.value ?: emptyList()) { index, it ->
                     //With itemsIndexed, we can access to the position of the item
                     ItemHistory(modifier.padding(horizontal = 10.dp), it.name)
 //                    viewModel.listHistories.value.forEach {
@@ -151,11 +155,14 @@ fun BodyScreen(modifier: Modifier = Modifier, viewModel: BodyViewModel) {
                 }
             }
         }
-
+        Button(onClick = {navController.navigate(MyScreen.RegistrationScreen.route)},
+        modifier = Modifier.fillMaxWidth()) {
+            Text(text = "Register users")
+        }
         Spacer(modifier = Modifier.height(30.dp))
         LazyColumn {
             item {
-                viewModel.listMembers.value.forEach {
+                viewModel?.listMembers?.value?.forEach {
                     ItemMembers(modifier.padding(vertical = 10.dp), memberUser = it)
                 }
             }
