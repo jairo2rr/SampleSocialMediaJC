@@ -2,21 +2,22 @@ package com.jairorr.samplesocialmediajc.ui.screen.registration
 
 import android.util.Log
 import android.widget.Toast
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -27,11 +28,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -76,7 +74,7 @@ fun RegisterUserScreen() {
             trailingIcon = {
                 IconButton(onClick = { passwordHidden = !passwordHidden }) {
                     val hiddenStateIcon =
-                        if (passwordHidden) Icons.Default.Share else Icons.Default.FavoriteBorder
+                        if (passwordHidden) Icons.Default.Visibility else Icons.Default.VisibilityOff
                     val description = if (passwordHidden) "Show password" else "Hide password"
                     Icon(imageVector = hiddenStateIcon, contentDescription = description)
                 }
@@ -102,12 +100,30 @@ fun RegisterUserScreen() {
         
         LazyColumn( modifier = Modifier.fillMaxWidth(),content = {
             items(usersList){
-                Card(modifier = Modifier.padding(16.dp).fillMaxWidth()) {
+                Card(modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth()) {
                     Text(text = it.username?:"")
                     Text(text = it.password?:"")
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Button(onClick = { deleteUser(it.username) }) {
+                        Text(text = "Delete user")
+                    }
                 }
             }
         })
+    }
+}
+
+fun deleteUser(username: String?) {
+    username?.let {
+        val referenceDb = FirebaseDatabase.getInstance().getReference("Users").child(it)
+        val removeUser = referenceDb.removeValue()
+        removeUser.addOnSuccessListener {
+            Log.d("STATECHILD","Remove successfully")
+        }.addOnFailureListener{
+            Log.d("STATECHILD","Can't remove it")
+        }
     }
 }
 

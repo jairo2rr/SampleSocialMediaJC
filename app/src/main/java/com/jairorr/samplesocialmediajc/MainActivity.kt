@@ -52,10 +52,13 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.jairorr.samplesocialmediajc.data.MemberUser
 import com.jairorr.samplesocialmediajc.ui.MyScreen
+import com.jairorr.samplesocialmediajc.ui.screen.login.LoginViewModel
 import com.jairorr.samplesocialmediajc.ui.screen.navigation.MyNavigation
 import com.jairorr.samplesocialmediajc.ui.theme.SampleSocialMediaJCTheme
 
 class MainActivity : ComponentActivity() {
+    private val viewModel by viewModels<BodyViewModel>()
+    private val viewLoginModel by viewModels<LoginViewModel>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -66,9 +69,11 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    val viewModel: BodyViewModel by viewModels()
 //                    BodyContainer(viewModel = viewModel)
-                    MyNavigation()
+                    MyNavigation(
+                        viewModel = viewModel,
+                        viewLoginModel = viewLoginModel
+                    )
                 }
             }
         }
@@ -78,9 +83,19 @@ class MainActivity : ComponentActivity() {
 //@Preview(showBackground = true)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BodyContainer(modifier: Modifier = Modifier, viewModel: BodyViewModel?,navController:NavController) {
+fun BodyContainer(
+    modifier: Modifier = Modifier,
+    viewModel: BodyViewModel,
+    navController: NavController,
+) {
     Scaffold(
-        content = { BodyScreen(modifier = modifier.padding(it), viewModel = viewModel, navController = navController) },
+        content = {
+            BodyScreen(
+                modifier = modifier.padding(it),
+                viewModel = viewModel,
+                navController = navController
+            )
+        },
         topBar = { MyAppBar() })
 }
 
@@ -110,7 +125,11 @@ fun MyAppBar() {
 
 
 @Composable
-fun BodyScreen(modifier: Modifier = Modifier, viewModel: BodyViewModel?, navController:NavController) {
+fun BodyScreen(
+    modifier: Modifier = Modifier,
+    viewModel: BodyViewModel,
+    navController: NavController,
+) {
     val context = LocalContext.current
     Column(modifier = modifier.padding(24.dp)) {
         Row(
@@ -122,7 +141,7 @@ fun BodyScreen(modifier: Modifier = Modifier, viewModel: BodyViewModel?, navCont
                 modifier = Modifier
                     .clip(CircleShape)
                     .clickable {
-                        viewModel?.refreshBoth()
+                        viewModel.refreshBoth()
                         Toast
                             .makeText(context, "Refresh data", Toast.LENGTH_SHORT)
                             .show()
@@ -146,24 +165,32 @@ fun BodyScreen(modifier: Modifier = Modifier, viewModel: BodyViewModel?, navCont
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                itemsIndexed(viewModel?.listHistories?.value ?: emptyList()) { index, it ->
-                    //With itemsIndexed, we can access to the position of the item
-                    ItemHistory(modifier.padding(horizontal = 10.dp), it.name)
-//                    viewModel.listHistories.value.forEach {
-//
-//                    }
+                item {
+                    viewModel.listHistories.value.forEach {
+                        ItemHistory(modifier.padding(horizontal = 5.dp), it.name)
+                    }
                 }
             }
         }
-        Button(onClick = {navController.navigate(MyScreen.RegistrationScreen.route)},
-        modifier = Modifier.fillMaxWidth()) {
-            Text(text = "Register users")
+        Spacer(modifier = Modifier.height(10.dp))
+        Row(modifier = Modifier.fillMaxWidth()) {
+            Button(
+                onClick = { navController.navigate(MyScreen.RegistrationScreen.route) }
+            ) {
+                Text(text = "Register users")
+            }
+            Button(
+                onClick = { navController.navigate(MyScreen.LoginScreen.route) }
+            ) {
+                Text(text = "Login")
+            }
         }
-        Spacer(modifier = Modifier.height(30.dp))
+
+        Spacer(modifier = Modifier.height(10.dp))
         LazyColumn {
             item {
-                viewModel?.listMembers?.value?.forEach {
-                    ItemMembers(modifier.padding(vertical = 10.dp), memberUser = it)
+                viewModel.listMembers.value.forEach {
+                    ItemMembers(modifier.padding(vertical = 2.dp), memberUser = it)
                 }
             }
         }
@@ -173,18 +200,25 @@ fun BodyScreen(modifier: Modifier = Modifier, viewModel: BodyViewModel?, navCont
 @Preview(widthDp = 200, heightDp = 100)
 @Composable
 fun ItemHistory(modifier: Modifier = Modifier, text: String = "Jairo") {
+    val context = LocalContext.current
     Box(
         modifier = modifier
+            .height(50.dp)
+            .width(70.dp)
             .background(Color.LightGray)
             .border(0.5.dp, Color.Black)
-            .fillMaxHeight()
-            .width(70.dp)
+            .clickable {
+                Toast
+                    .makeText(context, text, Toast.LENGTH_SHORT)
+                    .show()
+            }
     ) {
         Text(
             text = text,
             modifier = modifier.align(Alignment.Center),
             maxLines = 3,
-            overflow = TextOverflow.Ellipsis
+            overflow = TextOverflow.Ellipsis,
+            fontSize = 18.sp
         )
     }
 }
